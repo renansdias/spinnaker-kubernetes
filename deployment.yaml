@@ -1,0 +1,57 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: frontend
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - env:
+        - name: AUTH_API_ADDRESS
+          valueFrom:
+            secretKeyRef:
+              name: frontend
+              key: AUTH_API_ADDRESS
+        - name: PORT
+          valueFrom:
+            secretKeyRef:
+              name: frontend
+              key: PORT
+        - name: TODOS_API_ADDRESS
+          valueFrom:
+            secretKeyRef:
+              name: frontend
+              key: TODOS_API_ADDRESS
+        - name: ZIPKIN_URL
+          valueFrom:
+            secretKeyRef:
+              name: frontend
+              key: ZIPKIN_URL
+        image: slalomdojo/frontend
+        name: frontend
+        ports:
+        - containerPort: 8080
+          name: fport
+        livenessProbe:
+          httpGet:
+            path: /
+            port: fport
+          failureThreshold: 3
+          initialDelaySeconds: 30
+          periodSeconds: 15
+          successThreshold: 1
+          timeoutSeconds: 2
+        readinessProbe:
+          httpGet:
+            path: /
+            port: fport
+          failureThreshold: 3
+          initialDelaySeconds: 1
+          periodSeconds: 15
+          successThreshold: 1
+          timeoutSeconds: 2
+      restartPolicy: Always
